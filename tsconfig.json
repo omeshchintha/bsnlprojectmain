@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "moduleResolution": "node",
+    "baseUrl": ".",                          // 👈 Root ni `.`
+    "paths": {
+      "@/*": ["./*"]                         // 👈 '@/utils' ⇒ './utils'
+    },
+    "outDir": "dist",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": true,
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
+    "allowSyntheticDefaultImports": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "ts-node": {
+    "esm": true,
+    "transpileOnly": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "scripts/**/*",
+    "backend/**/*",
+    "src/**/*",
+    "utils/**/*",
+    ".next/types/**/*.ts",
+    "src/config/productionConfig.js",
+    "pages/api/process-orders.js"
+  ],
+  "exclude": ["node_modules"]
+}
