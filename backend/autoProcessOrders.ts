@@ -1705,7 +1705,7 @@
 
 
 
-
+//autoProcessOrders.ts
 import fs from "fs";
 import { format } from "date-fns";
 import fetch from "node-fetch";
@@ -1867,29 +1867,199 @@ export async function autoProcessOrders(): Promise<void> {
 
     const processedPhones = new Set<string>();
 
+    // for (const order of orders) {
+    //   const mobile = order.RMN || order.PHONE_NO || "9999999999";
+    //   if (processedPhones.has(mobile) || isNumberCompleted(mobile)) {
+    //     console.log(`🚫 Skipping ${mobile} - Already Processed Before`);
+    //     continue;
+    //   }
+
+    //   const existing = await tryCheckExisting(mobile, order);
+    //   const isExisting = existing?.message === "Already Registered";
+    //   console.log(`✅ Check Existing Done for: ${mobile} → ${isExisting ? "Already Registered" : "New User"}`);
+
+    //   const address = order.ADDRESS || "N/A";
+    //   const pincode = extractPincodeFromAddress(address);
+
+    //   let locKey = order.BA_CODE?.trim() || order.CIRCLE_CODE?.trim();
+    //   if (locationAliases[locKey]) locKey = locationAliases[locKey];
+
+    //   const locInfo = locationMap[locKey];
+    //   if (!locInfo) {
+    //     console.warn(`⚠️ Unknown location key: '${locKey}' for order ${order.ORDER_ID}`);
+    //     continue;
+    //   }
+
+    //   const subPayload = {
+    //     billing_address: { addr: address, pincode },
+    //     fname: order.CUSTOMER_NAME || "N/A",
+    //     mname: "",
+    //     lname: "Customer",
+    //     mobile_no: mobile,
+    //     phone_no: "",
+    //     email: order.EMAIL?.trim() || "user@example.com",
+    //     installation_address: address,
+    //     pincode: order.installation_pincode || pincode,
+    //     formno: "",
+    //     gender: PRODUCTION_CONFIG.defaultGender,
+    //     dob: null,
+    //     customer_type: PRODUCTION_CONFIG.customerType,
+    //     sublocation_id: locInfo.sublocation_id,
+    //     cdn_id: locInfo.cdn_id,
+    //     flatno: "1",
+    //     floor: "1",
+    //   };
+
+    //   console.log("📤 Creating Subscriber with Payload:", subPayload);
+
+    //   const subRes = await fetch(`${PRODUCTION_CONFIG.apiBasePath}/v1/subscriber?vr=railtel1.1`, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       Authorization: `Bearer ${token}`,
+    //     },
+    //     body: JSON.stringify(subPayload),
+    //   });
+
+    //   const subData = await subRes.json() as SubscriberResponse;
+    //   const subscriberId = subData?.data?.id;
+    //   const registeredMobile = subData?.data?.mobile_no;
+    //   console.log("🎫 Subscriber Response:", subData);
+
+    //   if (!subscriberId || !registeredMobile) {
+    //     console.error(`❌ Subscriber creation failed for mobile ${mobile} (Order: ${order.ORDER_ID})`);
+    //     continue;
+    //   }
+
+    //   if (!isExisting) {
+    //     await createIPTVUser(subscriberId, order.ORDER_ID);
+
+    //     const acctPayload = {
+    //       subscriber_id: subscriberId,
+    //       iptvuser_id: registeredMobile,
+    //       iptvuser_password: "Bsnl@123",
+    //       scheme_id: 1,
+    //       bouque_ids: [1],
+    //       rperiod_id: 3,
+    //       cdn_id: 1,
+    //     };
+
+    //     const formBody = new URLSearchParams();
+    //     Object.entries(acctPayload).forEach(([key, value]) => {
+    //       if (Array.isArray(value)) {
+    //         value.forEach((v) => formBody.append(`${key}[]`, v.toString()));
+    //       } else {
+    //         formBody.append(key, value.toString());
+    //       }
+    //     });
+
+    //     const acctRes = await fetch("http://202.62.66.122/api/railtel.php/v1/account?vr=railtel1.1", {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/x-www-form-urlencoded",
+    //         Authorization: `Bearer ${token}`,
+    //       },
+    //       body: formBody.toString(),
+    //     });
+
+    //     const acctJson = await acctRes.json();
+    //     console.log("📨 Account Response:", acctJson);
+
+    //     if (!acctRes.ok) {
+    //       console.error(`❌ Account creation failed for ${registeredMobile}`);
+    //       continue;
+    //     }
+
+    //     const checksumRes = await fetch("http://localhost:3000/api/generate-checksum", {
+    //       method: "POST",
+    //       headers: { "Content-Type": "application/json" },
+    //       body: JSON.stringify({
+    //         orderId: order.ORDER_ID,
+    //         vendorCode: "IPTV_ULKA_TV",
+    //         phoneNo: order.PHONE_NO,
+    //       }),
+    //     });
+
+    //     const chkData = await checksumRes.json() as { checksum: string };
+    //     const checksum = chkData?.checksum;
+    //     console.log("🔐 Generated Checksum:", checksum);
+
+    //     if (!checksum) {
+    //       console.warn("❌ Checksum generation failed");
+    //       continue;
+    //     }
+
+    //     const bsnlPayload = {
+    //       iptvorderdata: {
+    //         activity: "SUB_CREATED",
+    //         orderId: order.ORDER_ID,
+    //         phoneNo: order.PHONE_NO,
+    //         vendorCode: "IPTV_ULKA_TV",
+    //         iptvStatus: "Active",
+    //         subsId: registeredMobile,
+    //         orderDate: order.ORDER_DATE || format(new Date(), "dd/MM/yyyy HH:mm:ss"),
+    //         remarks: "SUB_CREATED",
+    //         checksum,
+    //       },
+    //     };
+
+    //     console.log("📡 Sending to BSNL:", JSON.stringify(bsnlPayload, null, 2));
+    //     const bsnlUpdateRes = await fetch("https://fms.bsnl.in/fmswebservices/rest/iptv/updateiptvorder", {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //         EKEY: process.env.EKEY || "",
+    //       },
+    //       body: JSON.stringify(bsnlPayload),
+    //     });
+
+    //     const bsnlUpdateData = await bsnlUpdateRes.json() as BsnlUpdateResponse;
+    //     const remarks = bsnlUpdateData?.ROWSET?.[0]?.REMARKS || "No Remarks";
+    //     const bsnlStatus = bsnlUpdateData?.STATUS?.toLowerCase();
+
+    //     console.log("📨 BSNL Response:", bsnlUpdateData);
+
+    //     if (bsnlStatus === "success" && remarks.includes("Updated Successfully")) {
+    //       console.log(`✅ BSNL SMS Success: ${order.ORDER_ID}`);
+    //       saveLastProcessedDate(order.ORDER_DATE);
+    //       markNumberAsCompleted(mobile);
+    //     } else {
+    //       console.warn(`❌ BSNL Update Failed: ${order.ORDER_ID} - ${remarks}`);
+    //     }
+    //   }
+
+    //   processedPhones.add(mobile);
+    //   console.log(`✅ Order ${order.ORDER_ID} processed.`);
+    // }
+
+
+//yesterday
     for (const order of orders) {
       const mobile = order.RMN || order.PHONE_NO || "9999999999";
+
       if (processedPhones.has(mobile) || isNumberCompleted(mobile)) {
         console.log(`🚫 Skipping ${mobile} - Already Processed Before`);
         continue;
       }
 
+      // Check if user already registered
       const existing = await tryCheckExisting(mobile, order);
       const isExisting = existing?.message === "Already Registered";
-      console.log(`✅ Check Existing Done for: ${mobile} → ${isExisting ? "Already Registered" : "New User"}`);
+      console.log(`✅ Existing check done: ${mobile} → ${isExisting ? "Already Registered" : "New User"}`);
 
       const address = order.ADDRESS || "N/A";
       const pincode = extractPincodeFromAddress(address);
 
       let locKey = order.BA_CODE?.trim() || order.CIRCLE_CODE?.trim();
       if (locationAliases[locKey]) locKey = locationAliases[locKey];
-
       const locInfo = locationMap[locKey];
+
       if (!locInfo) {
         console.warn(`⚠️ Unknown location key: '${locKey}' for order ${order.ORDER_ID}`);
         continue;
       }
 
+      // Always create subscriber
       const subPayload = {
         billing_address: { addr: address, pincode },
         fname: order.CUSTOMER_NAME || "N/A",
@@ -1924,16 +2094,17 @@ export async function autoProcessOrders(): Promise<void> {
       const subData = await subRes.json() as SubscriberResponse;
       const subscriberId = subData?.data?.id;
       const registeredMobile = subData?.data?.mobile_no;
-      console.log("🎫 Subscriber Response:", subData);
 
       if (!subscriberId || !registeredMobile) {
-        console.error(`❌ Subscriber creation failed for mobile ${mobile} (Order: ${order.ORDER_ID})`);
+        console.error(`❌ Subscriber creation failed for ${mobile}`);
         continue;
       }
 
-      if (!isExisting) {
-        await createIPTVUser(subscriberId, order.ORDER_ID);
+      // Always create IPTV user
+      await createIPTVUser(subscriberId, order.ORDER_ID);
 
+      // Only if new user → create account
+      if (!isExisting) {
         const acctPayload = {
           subscriber_id: subscriberId,
           iptvuser_id: registeredMobile,
@@ -1969,68 +2140,234 @@ export async function autoProcessOrders(): Promise<void> {
           console.error(`❌ Account creation failed for ${registeredMobile}`);
           continue;
         }
+      }
 
-        const checksumRes = await fetch("http://localhost:3000/api/generate-checksum", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId: order.ORDER_ID,
-            vendorCode: "IPTV_ULKA_TV",
-            phoneNo: order.PHONE_NO,
-          }),
-        });
+      // ✅ Checksum create → BSNL SMS always
+      const checksumRes = await fetch("http://localhost:3000/api/generate-checksum", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: order.ORDER_ID,
+          vendorCode: "IPTV_ULKA_TV",
+          phoneNo: order.PHONE_NO,
+        }),
+      });
 
-        const chkData = await checksumRes.json() as { checksum: string };
-        const checksum = chkData?.checksum;
-        console.log("🔐 Generated Checksum:", checksum);
+      const chkData = await checksumRes.json() as { checksum: string };
+      const checksum = chkData?.checksum;
 
-        if (!checksum) {
-          console.warn("❌ Checksum generation failed");
-          continue;
-        }
+      if (!checksum) {
+        console.warn("❌ Checksum generation failed");
+        continue;
+      }
 
-        const bsnlPayload = {
-          iptvorderdata: {
-            activity: "SUB_CREATED",
-            orderId: order.ORDER_ID,
-            phoneNo: order.PHONE_NO,
-            vendorCode: "IPTV_ULKA_TV",
-            iptvStatus: "Active",
-            subsId: registeredMobile,
-            orderDate: order.ORDER_DATE || format(new Date(), "dd/MM/yyyy HH:mm:ss"),
-            remarks: "SUB_CREATED",
-            checksum,
-          },
-        };
+      const bsnlPayload = {
+        iptvorderdata: {
+          activity: "SUB_CREATED",
+          orderId: order.ORDER_ID,
+          phoneNo: order.PHONE_NO,
+          vendorCode: "IPTV_ULKA_TV",
+          iptvStatus: "Active",
+          subsId: registeredMobile,
+          orderDate: order.ORDER_DATE || format(new Date(), "dd/MM/yyyy HH:mm:ss"),
+          remarks: "SUB_CREATED",
+          checksum,
+        },
+      };
 
-        console.log("📡 Sending to BSNL:", JSON.stringify(bsnlPayload, null, 2));
-        const bsnlUpdateRes = await fetch("https://fms.bsnl.in/fmswebservices/rest/iptv/updateiptvorder", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            EKEY: process.env.EKEY || "",
-          },
-          body: JSON.stringify(bsnlPayload),
-        });
+      const bsnlUpdateRes = await fetch("https://fms.bsnl.in/fmswebservices/rest/iptv/updateiptvorder", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          EKEY: process.env.EKEY || "",
+        },
+        body: JSON.stringify(bsnlPayload),
+      });
 
-        const bsnlUpdateData = await bsnlUpdateRes.json() as BsnlUpdateResponse;
-        const remarks = bsnlUpdateData?.ROWSET?.[0]?.REMARKS || "No Remarks";
-        const bsnlStatus = bsnlUpdateData?.STATUS?.toLowerCase();
+      const bsnlUpdateData = await bsnlUpdateRes.json() as BsnlUpdateResponse;
+      const remarks = bsnlUpdateData?.ROWSET?.[0]?.REMARKS || "No Remarks";
+      const bsnlStatus = bsnlUpdateData?.STATUS?.toLowerCase();
 
-        console.log("📨 BSNL Response:", bsnlUpdateData);
-
-        if (bsnlStatus === "success" && remarks.includes("Updated Successfully")) {
-          console.log(`✅ BSNL SMS Success: ${order.ORDER_ID}`);
-          saveLastProcessedDate(order.ORDER_DATE);
-          markNumberAsCompleted(mobile);
-        } else {
-          console.warn(`❌ BSNL Update Failed: ${order.ORDER_ID} - ${remarks}`);
-        }
+      if (bsnlStatus === "success" && remarks.includes("Updated Successfully")) {
+        console.log(`✅ BSNL SMS Success: ${order.ORDER_ID}`);
+        saveLastProcessedDate(order.ORDER_DATE);
+        markNumberAsCompleted(mobile);
+      } else {
+        console.warn(`❌ BSNL Update Failed: ${order.ORDER_ID} - ${remarks}`);
       }
 
       processedPhones.add(mobile);
       console.log(`✅ Order ${order.ORDER_ID} processed.`);
     }
+
+
+    // for (const order of orders) {
+    //   const mobile = order.RMN || order.PHONE_NO || "9999999999";
+    
+    //   if (processedPhones.has(mobile) || isNumberCompleted(mobile)) {
+    //     console.log(`🚫 Skipping ${mobile} - Already Processed Before`);
+    //     continue;
+    //   }
+    
+    //   // Step 1: Check if this mobile number already registered
+    //   const existing = await tryCheckExisting(mobile, order);
+    //   const isExistingUser = existing?.message === "Already Registered";
+    
+    //   console.log(`📞 ${mobile} → ${isExistingUser ? "Existing User" : "New User"}`);
+    
+    //   const address = order.ADDRESS || "N/A";
+    //   const pincode = extractPincodeFromAddress(address);
+    
+    //   let locKey = order.BA_CODE?.trim() || order.CIRCLE_CODE?.trim();
+    //   if (locationAliases[locKey]) locKey = locationAliases[locKey];
+    //   const locInfo = locationMap[locKey];
+    
+    //   if (!locInfo) {
+    //     console.warn(`⚠️ Unknown location key: '${locKey}' for order ${order.ORDER_ID}`);
+    //     continue;
+    //   }
+    
+    //   // ✅ Step 2: Always create subscriber user
+    //   const subPayload = {
+    //     billing_address: { addr: address, pincode },
+    //     fname: order.CUSTOMER_NAME || "N/A",
+    //     mname: "",
+    //     lname: "Customer",
+    //     mobile_no: mobile,
+    //     phone_no: "",
+    //     email: order.EMAIL?.trim() || "user@example.com",
+    //     installation_address: address,
+    //     pincode: order.installation_pincode || pincode,
+    //     formno: "",
+    //     gender: PRODUCTION_CONFIG.defaultGender,
+    //     dob: null,
+    //     customer_type: PRODUCTION_CONFIG.customerType,
+    //     sublocation_id: locInfo.sublocation_id,
+    //     cdn_id: locInfo.cdn_id,
+    //     flatno: "1",
+    //     floor: "1",
+    //   };
+    
+    //   const subRes = await fetch(`${PRODUCTION_CONFIG.apiBasePath}/v1/subscriber?vr=railtel1.1`, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       Authorization: `Bearer ${token}`,
+    //     },
+    //     body: JSON.stringify(subPayload),
+    //   });
+    
+    //   const subData = await subRes.json() as SubscriberResponse;
+    //   const subscriberId = subData?.data?.id;
+    //   const registeredMobile = subData?.data?.mobile_no;
+    
+    //   if (!subscriberId || !registeredMobile) {
+    //     console.error(`❌ Subscriber creation failed for ${mobile}`);
+    //     continue;
+    //   }
+    
+    //   // ✅ Step 3: Create IPTV User (always)
+    //   await createIPTVUser(subscriberId, order.ORDER_ID);
+    
+    //   // ✅ Step 4: Only for NEW Users → create account
+    //   if (!isExistingUser) {
+    //     const acctPayload = {
+    //       subscriber_id: subscriberId,
+    //       iptvuser_id: registeredMobile,
+    //       iptvuser_password: "Bsnl@123",
+    //       scheme_id: 1,
+    //       bouque_ids: [1],
+    //       rperiod_id: 3,
+    //       cdn_id: 1,
+    //     };
+    
+    //     const formBody = new URLSearchParams();
+    //     Object.entries(acctPayload).forEach(([key, value]) => {
+    //       if (Array.isArray(value)) {
+    //         value.forEach((v) => formBody.append(`${key}[]`, v.toString()));
+    //       } else {
+    //         formBody.append(key, value.toString());
+    //       }
+    //     });
+    
+    //     const acctRes = await fetch("http://202.62.66.122/api/railtel.php/v1/account?vr=railtel1.1", {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/x-www-form-urlencoded",
+    //         Authorization: `Bearer ${token}`,
+    //       },
+    //       body: formBody.toString(),
+    //     });
+    
+    //     const acctJson = await acctRes.json();
+    //     console.log("📨 Account Response:", acctJson);
+    
+    //     if (!acctRes.ok) {
+    //       console.error(`❌ Account creation failed for ${registeredMobile}`);
+    //       continue;
+    //     }
+    //   }
+    
+    //   // ✅ Step 5: Always generate checksum
+    //   const checksumRes = await fetch("http://localhost:3000/api/generate-checksum", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({
+    //       orderId: order.ORDER_ID,
+    //       vendorCode: "IPTV_ULKA_TV",
+    //       phoneNo: order.PHONE_NO,
+    //     }),
+    //   });
+    
+    //   const chkData = await checksumRes.json() as { checksum: string };
+    //   const checksum = chkData?.checksum;
+    
+    //   if (!checksum) {
+    //     console.warn("❌ Checksum generation failed");
+    //     continue;
+    //   }
+    
+    //   // ✅ Step 6: Send to BSNL
+    //   const bsnlPayload = {
+    //     iptvorderdata: {
+    //       activity: "SUB_CREATED",
+    //       orderId: order.ORDER_ID,
+    //       phoneNo: order.PHONE_NO,
+    //       vendorCode: "IPTV_ULKA_TV",
+    //       iptvStatus: "Active",
+    //       subsId: registeredMobile,
+    //       orderDate: order.ORDER_DATE || format(new Date(), "dd/MM/yyyy HH:mm:ss"),
+    //       remarks: "SUB_CREATED",
+    //       checksum,
+    //     },
+    //   };
+    
+    //   const bsnlUpdateRes = await fetch("https://fms.bsnl.in/fmswebservices/rest/iptv/updateiptvorder", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       EKEY: process.env.EKEY || "",
+    //     },
+    //     body: JSON.stringify(bsnlPayload),
+    //   });
+    
+    //   const bsnlUpdateData = await bsnlUpdateRes.json() as BsnlUpdateResponse;
+    //   const remarks = bsnlUpdateData?.ROWSET?.[0]?.REMARKS || "No Remarks";
+    //   const bsnlStatus = bsnlUpdateData?.STATUS?.toLowerCase();
+    
+    //   if (bsnlStatus === "success" && remarks.includes("Updated Successfully")) {
+    //     console.log(`✅ BSNL SMS Success: ${order.ORDER_ID}`);
+    //     saveLastProcessedDate(order.ORDER_DATE);
+    //     markNumberAsCompleted(mobile);
+    //   } else {
+    //     console.warn(`❌ BSNL Update Failed: ${order.ORDER_ID} - ${remarks}`);
+    //   }
+    
+    //   processedPhones.add(mobile);
+    //   console.log(`✅ Order ${order.ORDER_ID} processed.`);
+    // }
+    
+
   } catch (err: any) {
     console.error("❌ Error:", err.message);
   }
