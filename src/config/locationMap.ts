@@ -43,6 +43,7 @@
 export const locationMap: Record<string, { sublocation_id: number; cdn_id: number }> = {
   NLR: { sublocation_id: 5, cdn_id: 1 },  // Nellore
   VSK: { sublocation_id: 5, cdn_id: 1 },  // Visakhapatnam
+  VSP: { sublocation_id: 5, cdn_id: 1 }, // Example
   CHT: { sublocation_id: 5, cdn_id: 1 },  // Chittoor
   ATP: { sublocation_id: 5, cdn_id: 1 },  // Anantapur
   RMY: { sublocation_id: 5, cdn_id: 1 },  // Rajahmundry
